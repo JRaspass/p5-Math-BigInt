@@ -111,4 +111,16 @@ my %WriteMakefileArgs =
 $WriteMakefileArgs{INSTALLDIRS} = 'perl'
   if $] < 5.012;
 
+# Merge *_REQUIRES into PREREQ_PM if EU::MM is too old to understand.
+for ( [ BUILD_REQUIRES => '6.55_03' ], [ TEST_REQUIRES => '6.64' ] ) {
+    my ( $key, $ver ) = @$_;
+
+    unless ( eval { ExtUtils::MakeMaker->VERSION($ver) } ) {
+        $WriteMakefileArgs{PREREQ_PM} = {
+            %{ $WriteMakefileArgs{PREREQ_PM} },
+            %{ delete $WriteMakefileArgs{$key} },
+        }
+    }
+}
+
 WriteMakefile(%WriteMakefileArgs);
